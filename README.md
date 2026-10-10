@@ -50,3 +50,17 @@ Apple-leaning and restrained: the SF system font stack, iOS label colors, hairli
 ## Why
 
 Trying to spend less time on social media by replacing it with curiosity — the history, wars, space, physics, and the occasional rabbit hole, one thread at a time.
+
+## Agents
+
+This repo ships three [OpenCode](https://opencode.ai) subagents under `.opencode/agents/`:
+
+| Agent | What it does | Permissions |
+| --- | --- | --- |
+| `designer` | UI layout, typography, color, motion (calm / Apple-leaning) | read + edit |
+| `reviewer` | correctness, accessibility, regressions | read-only |
+| `scout` | fast read-only reconnaissance | read-only |
+
+They define a **role and permissions, not a model** — on the free tier a model set
+in an agent's config loses its auth in the child session, so the model is chosen
+at dispatch time instead.
