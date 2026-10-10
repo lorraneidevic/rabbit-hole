@@ -10,12 +10,12 @@
 :root {
   color-scheme: light;
 
-  /* Surfaces — a faint rose cast over the neutral base */
-  --bg: #FDF3F7;
-  --bg-2: #F7E4EC;
+  /* Surfaces — neutral base; the rose lives in the accent below */
+  --bg: #F2F2F7;
+  --bg-2: #E5E5EA;
   --card: #FFFFFF;
-  --fill: rgba(190, 90, 130, 0.10);
-  --fill-strong: rgba(190, 90, 130, 0.18);
+  --fill: rgba(120, 120, 128, 0.09);
+  --fill-strong: rgba(120, 120, 128, 0.16);
 
   /* iOS label colors */
   --label: #1C1C1E;
@@ -28,14 +28,14 @@
   --muted: var(--label-2);
   --accent-ink: var(--label-inverse);
 
-  /* Accent + separators. Light uses a rose pink chosen for text contrast;
-     dark lifts it below. */
+  /* Accent + separators. The rose replaces the old blue accent; separators
+     stay neutral grey. Dark lifts the accent below. */
   --accent: #D6336C;
   --danger: #FF453A;
-  --line: #F0D6E1;
-  --hairline: rgba(190, 70, 120, 0.14);
-  --material: rgba(253, 243, 247, 0.74);
-  --scrim: rgba(60, 10, 30, 0.28);
+  --line: #E5E5EA;
+  --hairline: rgba(60, 60, 67, 0.12);
+  --material: rgba(249, 249, 251, 0.72);
+  --scrim: rgba(0, 0, 0, 0.28);
 
   /* Shape — 8pt-ish radii */
   --radius-lg: 20px;
