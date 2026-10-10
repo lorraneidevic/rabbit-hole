@@ -329,7 +329,6 @@ async function newCard(opts = {}) {
 function renderLimit() {
   $("card").innerHTML = `
     <div class="error-box">
-      <p style="font-size:40px;margin:0">🌙</p>
       <p><strong>That's your fill for today.</strong></p>
       <p style="font-size:13.5px">You explored ${state.count} threads. Resting is part of the point —
       come back tomorrow and the well refills.</p>
@@ -368,8 +367,8 @@ function renderTrail() {
       <h3>${esc(t.wiki.title)}</h3>
       <div class="t-row">
         <a href="${esc(t.wiki.url)}" target="_blank" rel="noopener">Wikipedia</a>
-        ${t.book ? `<a href="${esc(t.book.url)}" target="_blank" rel="noopener">📖 Book</a>` : ""}
-        ${t.podcast ? `<a href="${esc(t.podcast.url)}" target="_blank" rel="noopener">🎧 Podcast</a>` : ""}
+        ${t.book ? `<a href="${esc(t.book.url)}" target="_blank" rel="noopener">Book</a>` : ""}
+        ${t.podcast ? `<a href="${esc(t.podcast.url)}" target="_blank" rel="noopener">Podcast</a>` : ""}
         <button class="trail-remove" data-remove="${esc(t.id)}">Remove</button>
       </div>
     </div>`).join("");
@@ -391,7 +390,7 @@ function buildChips(nav, selectedId, onPick) {
   nav.innerHTML = "";
   const surprise = document.createElement("button");
   surprise.className = "chip surprise";
-  surprise.textContent = "✨ Surprise me";
+  surprise.textContent = "Surprise me";
   surprise.setAttribute("aria-pressed", String(selectedId === null));
   surprise.addEventListener("click", () => onPick(null));
   nav.appendChild(surprise);
@@ -512,7 +511,6 @@ function renderCommuteBusy(topic) {
 function renderCommuteEmpty(message) {
   $("commute-list").innerHTML = `
     <div class="error-box">
-      <p style="font-size:36px;margin:0">🎧</p>
       <p>${esc(message)}</p>
       <button class="action primary" id="find-again-btn">Try again</button>
     </div>`;
@@ -524,7 +522,7 @@ function episodeHTML(rec) {
   const meta = [rec.show, fmtMins(rec.ms), fmtDate(rec.date)].filter(Boolean).join(" · ");
   const thumb = rec.artwork
     ? `<img class="ep-thumb" src="${esc(rec.artwork)}" alt="" width="56" height="56" loading="lazy">`
-    : `<span class="ep-thumb ep-thumb-ph" aria-hidden="true">🎧</span>`;
+    : `<span class="ep-thumb ep-thumb-ph" aria-hidden="true"></span>`;
   return `
     <article class="ep" style="--chip:${esc(rec.color)}">
       ${thumb}
@@ -532,9 +530,9 @@ function episodeHTML(rec) {
         <h3 class="ep-title">${esc(rec.title)}</h3>
         <p class="ep-show">${esc(meta)}</p>
         <div class="ep-row">
-          ${rec.audio ? `<a class="ep-link" href="${esc(rec.audio)}" target="_blank" rel="noopener">▶ Play</a>` : ""}
-          ${rec.link ? `<a class="ep-link" href="${esc(rec.link)}" target="_blank" rel="noopener">App ↗</a>` : ""}
-          <button class="ep-add${queued ? " on" : ""}" data-add="${esc(rec.id)}" aria-pressed="${queued}">${queued ? "✓ Queued" : "＋ Queue"}</button>
+          ${rec.audio ? `<a class="ep-link" href="${esc(rec.audio)}" target="_blank" rel="noopener">Play</a>` : ""}
+          ${rec.link ? `<a class="ep-link" href="${esc(rec.link)}" target="_blank" rel="noopener">Podcasts</a>` : ""}
+          <button class="ep-add${queued ? " on" : ""}" data-add="${esc(rec.id)}" aria-pressed="${queued}">${queued ? "Queued" : "Add"}</button>
         </div>
       </div>
     </article>`;
@@ -563,7 +561,7 @@ function toggleQueue(rec, btn) {
   if (btn) {
     btn.classList.toggle("on", isQueued);
     btn.setAttribute("aria-pressed", String(isQueued));
-    btn.textContent = isQueued ? "✓ Queued" : "＋ Queue";
+    btn.textContent = isQueued ? "Queued" : "Add";
   }
   updateQueueCount();
   renderQueue();
@@ -583,7 +581,7 @@ function renderQueue() {
     : "Episodes you queue will land here.";
 
   if (!n) {
-    body.innerHTML = `<div class="empty-trail">Nothing queued yet.<br>Tap ＋ Queue on an episode to keep it.</div>`;
+    body.innerHTML = `<div class="empty-trail">Nothing queued yet.<br>Tap Add on an episode to keep it.</div>`;
     foot.innerHTML = "";
     return;
   }
@@ -591,7 +589,7 @@ function renderQueue() {
   body.innerHTML = queue.map((rec) => {
     const thumb = rec.artwork
       ? `<img class="ep-thumb" src="${esc(rec.artwork)}" alt="" width="48" height="48" loading="lazy">`
-      : `<span class="ep-thumb ep-thumb-ph" aria-hidden="true">🎧</span>`;
+      : `<span class="ep-thumb ep-thumb-ph" aria-hidden="true"></span>`;
     return `
       <div class="trail-item">
         <div class="q-item">
@@ -602,8 +600,8 @@ function renderQueue() {
           </div>
         </div>
         <div class="t-row">
-          ${rec.audio ? `<a href="${esc(rec.audio)}" target="_blank" rel="noopener">▶ Play</a>` : ""}
-          ${rec.link ? `<a href="${esc(rec.link)}" target="_blank" rel="noopener">App</a>` : ""}
+          ${rec.audio ? `<a href="${esc(rec.audio)}" target="_blank" rel="noopener">Play</a>` : ""}
+          ${rec.link ? `<a href="${esc(rec.link)}" target="_blank" rel="noopener">Podcasts</a>` : ""}
           <button class="trail-remove" data-qremove="${esc(rec.id)}">Remove</button>
         </div>
       </div>`;
@@ -620,7 +618,7 @@ function renderQueue() {
       if (listBtn) {
         listBtn.classList.remove("on");
         listBtn.setAttribute("aria-pressed", "false");
-        listBtn.textContent = "＋ Queue";
+        listBtn.textContent = "Add";
       }
     });
   });

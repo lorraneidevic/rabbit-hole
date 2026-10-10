@@ -1,4 +1,4 @@
-# 🕳️ Rabbit Hole
+# Rabbit Hole
 
 A small, calm web app for following **one curiosity thread at a time** — an antidote to the endless social feed.
 
@@ -49,7 +49,7 @@ No build step, no dependencies. `index.html` + `styles.css` + `app.js` is the wh
 
 ## Design
 
-Apple-leaning and restrained: the SF system font stack, iOS label colors, hairline separators, soft layered shadows, a single blue accent, a translucent action bar, and a full dark mode via `prefers-color-scheme`. Motion is gentle and respects `prefers-reduced-motion`.
+Apple-leaning and restrained: the SF system font stack, iOS label colors, hairline separators, soft layered shadows, a single rose-pink accent, a translucent action bar, and a full dark mode via `prefers-color-scheme`. Motion is gentle and respects `prefers-reduced-motion`.
 
 ## Why
 

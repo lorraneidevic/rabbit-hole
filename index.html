@@ -11,7 +11,7 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark">🕳️</span>
+        <span class="brand-mark" aria-hidden="true"></span>
         <div>
           <h1>Rabbit Hole</h1>
           <p class="tagline">Follow one thread at a time.</p>
@@ -63,16 +63,16 @@
         <span class="ico" aria-hidden="true">↻</span><span class="lbl">Another thread</span>
       </button>
       <button id="trail-btn" class="action ghost" aria-label="Open your Trail">
-        <span class="ico" aria-hidden="true">🔖</span><span class="lbl">Trail <span id="trail-count" class="badge">0</span></span>
+        <span class="lbl">Trail <span id="trail-count" class="badge">0</span></span>
       </button>
     </div>
 
     <div class="actions" id="commute-actions" hidden>
       <button id="find-btn" class="action primary" aria-label="Find podcast episodes">
-        <span class="ico" aria-hidden="true">🔎</span><span class="lbl">Find episodes</span>
+        <span class="lbl">Find episodes</span>
       </button>
       <button id="queue-btn" class="action ghost" aria-label="Open your commute queue">
-        <span class="ico" aria-hidden="true">🎧</span><span class="lbl">Queue <span id="queue-count" class="badge">0</span></span>
+        <span class="lbl">Queue <span id="queue-count" class="badge">0</span></span>
       </button>
     </div>
   </div>
@@ -113,14 +113,14 @@
       <div class="deeper">
         <div class="deeper-label">Go deeper</div>
         <a class="rec" data-el="book" target="_blank" rel="noopener">
-          <span class="rec-kind">📖 Book</span>
+          <span class="rec-kind">Book</span>
           <span class="rec-body">
             <span class="rec-title" data-el="book-title"></span>
             <span class="rec-meta" data-el="book-meta"></span>
           </span>
         </a>
         <a class="rec" data-el="pod" target="_blank" rel="noopener">
-          <span class="rec-kind">🎧 Podcast</span>
+          <span class="rec-kind">Podcast</span>
           <span class="rec-body">
             <span class="rec-title" data-el="pod-title"></span>
             <span class="rec-meta" data-el="pod-meta"></span>
