@@ -1,0 +1,877 @@
+/* ==========================================================================
+   Rabbit Hole — calm, finite curiosity.
+   Mobile-first. Apple-flavoured: iOS label colors, hairline separators,
+   translucent materials, soft layered shadows, restrained motion.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design tokens
+   -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg: #F2F2F7;
+  --bg-2: #E5E5EA;
+  --card: #FFFFFF;
+  --fill: rgba(120, 120, 128, 0.09);
+  --fill-strong: rgba(120, 120, 128, 0.16);
+
+  /* iOS label colors */
+  --label: #1C1C1E;
+  --label-2: #8E8E93;
+  --label-3: #C7C7CC;
+  --label-inverse: #FFFFFF;
+
+  /* Legacy aliases — same meaning, kept so the custom-property contract holds */
+  --ink: var(--label);
+  --muted: var(--label-2);
+  --accent-ink: var(--label-inverse);
+
+  /* Accent + separators. Light uses the iOS light-mode blue for text contrast;
+     dark overrides to #0A84FF below. */
+  --accent: #007AFF;
+  --danger: #FF453A;
+  --line: #E5E5EA;
+  --hairline: rgba(60, 60, 67, 0.12);
+  --material: rgba(249, 249, 251, 0.72);
+  --scrim: rgba(0, 0, 0, 0.28);
+
+  /* Shape — 8pt-ish radii */
+  --radius-lg: 20px;
+  --radius: 18px;
+  --radius-sm: 14px;
+  --radius-btn: 12px;
+
+  /* Tap targets */
+  --tap: 50px;
+  --tap-min: 44px;
+
+  /* Soft, layered, low-opacity elevation */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-bar: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 30px rgba(0, 0, 0, 0.10);
+  --shadow-accent: 0 2px 12px rgba(10, 132, 255, 0.28);
+
+  /* Motion */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur: 200ms;
+  --dur-fast: 150ms;
+}
+
+/* --------------------------------------------------------------------------
+   2. Base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Must win over every component display rule. */
+[hidden] { display: none !important; }
+
+html,
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--bg);
+  color: var(--label);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* Keyboard focus only — iOS keeps its own highlight for touch. */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+button {
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* --------------------------------------------------------------------------
+   3. Shell
+   -------------------------------------------------------------------------- */
+.app {
+  max-width: 620px;
+  margin: 0 auto;
+  padding:
+    max(8px, env(safe-area-inset-top))
+    16px
+    calc(128px + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --------------------------------------------------------------------------
+   4. Top bar
+   -------------------------------------------------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
+  font-size: 30px;
+  line-height: 1;
+  flex: 0 0 auto;
+  transition: transform var(--dur) var(--ease);
+}
+/* Hover is a pointer-only nicety — never leave it stuck on touch. */
+@media (hover: hover) and (pointer: fine) {
+  .topbar:hover .brand-mark { transform: rotate(-6deg) scale(1.04); }
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+  color: var(--label);
+}
+
+.tagline {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: -0.006em;
+  color: var(--label-2);
+}
+
+/* Daily meter pill */
+.meter {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap-min);
+  padding: 0 16px;
+  border: none;
+  background: var(--card);
+  color: var(--label-2);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-sm);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.004em;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+  user-select: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.meter-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.16);
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.meter.full { color: var(--label); }
+.meter.full .meter-dot {
+  background: var(--danger);
+  box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.18);
+}
+
+/* --------------------------------------------------------------------------
+   5. Topic chips
+   -------------------------------------------------------------------------- */
+.chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -16px;
+  padding: 0 16px 16px;
+}
+.chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: 0 18px;
+  border: none;
+  background: var(--card);
+  color: var(--label);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-sm);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.chip:active { transform: scale(0.96); }
+
+/* Selected: solid --chip tint, darkened just enough for white type. */
+.chip[aria-pressed="true"] {
+  background: var(--chip, var(--accent));
+  background: color-mix(in srgb, var(--chip, var(--accent)) 88%, #000);
+  color: var(--label-inverse);
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--chip, var(--accent)) 30%, transparent);
+}
+
+.chip.surprise { font-weight: 600; }
+
+/* --------------------------------------------------------------------------
+   6. Card
+   -------------------------------------------------------------------------- */
+.stage {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+}
+
+.card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 22px 22px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow);
+}
+
+.card-empty {
+  margin: auto;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--label-2);
+  font-size: 16px;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+.card-empty strong {
+  color: var(--label);
+  font-weight: 600;
+}
+
+/* Entrance animation (preserved). */
+.card-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: rise 380ms var(--ease) both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.994); }
+  to   { opacity: 1; transform: none; }
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--tap-min);
+}
+
+/* --chip drives both themes; JS sets it inline. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--chip, var(--accent));
+  background: color-mix(in srgb, var(--chip, var(--accent)) 14%, transparent);
+  color: var(--chip, var(--accent));
+  color: color-mix(in srgb, var(--chip, var(--accent)) 82%, #000);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.card-save {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin: -8px -8px -8px 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--label-3);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+.card-save:active {
+  transform: scale(0.88);
+  background: var(--fill);
+}
+.card-save.on { color: var(--accent); }
+
+.card-title {
+  margin: 8px 0 12px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--label);
+  text-wrap: balance;
+}
+
+.card-extract {
+  margin: 0;
+  color: var(--label-2);
+  font-size: 16.5px;
+  line-height: 1.62;
+  letter-spacing: -0.008em;
+  text-wrap: pretty;
+}
+
+.card-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  margin-top: 8px;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  text-decoration: none;
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.card-link:active { opacity: 0.6; transform: translateX(2px); }
+
+/* --------------------------------------------------------------------------
+   7. "Go deeper" recommendations
+   -------------------------------------------------------------------------- */
+.deeper {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.deeper-label {
+  margin-bottom: 12px;
+  color: var(--label-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.rec {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--fill);
+  color: var(--label);
+  text-decoration: none;
+  transition: background var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.rec:last-child { margin-bottom: 0; }
+.rec:active {
+  transform: scale(0.985);
+  background: var(--fill-strong);
+}
+
+.rec-kind {
+  flex: 0 0 auto;
+  min-width: 66px;
+  padding-top: 2px;
+  color: var(--label-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.rec-body { min-width: 0; }
+
+.rec-title {
+  display: block;
+  color: var(--label);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: -0.014em;
+  text-wrap: pretty;
+}
+
+.rec-meta {
+  display: block;
+  margin-top: 3px;
+  color: var(--label-2);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   8. Loading skeleton
+   -------------------------------------------------------------------------- */
+.skeleton { animation: none; }
+
+.skeleton .sk-line,
+.skeleton .sk-block {
+  background: linear-gradient(
+    100deg,
+    var(--fill) 20%,
+    var(--fill-strong) 42%,
+    var(--fill) 64%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 1.4s var(--ease) infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 160% 0; }
+  to   { background-position: -60% 0; }
+}
+
+.sk-line {
+  height: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+}
+.sk-line.w40 { width: 40%; }
+.sk-line.w70 { width: 70%; }
+.sk-line.w90 { width: 90%; }
+
+.sk-block {
+  height: 64px;
+  margin: 12px 0;
+  border-radius: var(--radius-sm);
+}
+
+/* --------------------------------------------------------------------------
+   9. Error / limit state
+   -------------------------------------------------------------------------- */
+.error-box {
+  margin: auto;
+  padding: 40px 8px;
+  text-align: center;
+  color: var(--label-2);
+  font-size: 16px;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+.error-box strong {
+  color: var(--label);
+  font-weight: 600;
+}
+.error-box p { margin: 8px 0; }
+.error-box button {
+  margin-top: 24px;
+  min-width: 200px;
+}
+
+/* --------------------------------------------------------------------------
+   10. Bottom action bar — translucent material
+   -------------------------------------------------------------------------- */
+.actions {
+  position: fixed;
+  left: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  width: min(620px, calc(100% - 24px));
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  background: var(--material);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow:
+    inset 0 0 0 1px var(--hairline),
+    var(--shadow-bar);
+}
+
+.action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-btn);
+  background: var(--fill);
+  color: var(--label);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.014em;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    opacity var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.action:active { transform: scale(0.96); }
+
+/* Secondary buttons stay quiet on the translucent bar. */
+.action.ghost {
+  background: var(--fill);
+  color: var(--label);
+  box-shadow: none;
+}
+.action.ghost:active { background: var(--fill-strong); }
+
+.action.primary {
+  flex: 1.6;
+  background: var(--accent);
+  color: var(--label-inverse);
+  box-shadow: var(--shadow-accent);
+}
+
+.action:disabled {
+  opacity: 0.36;
+  cursor: default;
+}
+.action:disabled:active { transform: none; }
+
+.action .ico {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.action .lbl {
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--fill-strong);
+  color: var(--label-2);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+.action.primary .badge {
+  background: rgba(255, 255, 255, 0.24);
+  color: var(--label-inverse);
+}
+
+/* --------------------------------------------------------------------------
+   11. Trail drawer
+   -------------------------------------------------------------------------- */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--scrim);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: fade 240ms var(--ease) both;
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.drawer {
+  position: fixed;
+  z-index: 50;
+  top: 10%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 620px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px calc(24px + env(safe-area-inset-bottom));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--bg);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.16), 0 -1px 0 var(--hairline);
+  animation: slideup 320ms var(--ease) both;
+  -webkit-overflow-scrolling: touch;
+}
+
+.drawer::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 36px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--label-3);
+  opacity: 0.55;
+  transform: translateX(-50%);
+}
+
+@keyframes slideup {
+  from { transform: translateY(24px); opacity: 0.5; }
+  to   { transform: none; opacity: 1; }
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0 0;
+}
+
+.drawer-head h2 {
+  margin: 0;
+  color: var(--label);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.024em;
+  line-height: 1.2;
+}
+
+.icon-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: none;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--label-2);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+.icon-btn:active {
+  transform: scale(0.92);
+  background: var(--fill-strong);
+  color: var(--label);
+}
+
+.drawer-sub {
+  margin: 8px 0 16px;
+  color: var(--label-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.drawer-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+
+.trail-item {
+  margin-bottom: 8px;
+  padding: 14px 16px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-sm);
+  animation: rise 300ms var(--ease) both;
+}
+
+.trail-item h3 {
+  margin: 6px 0 0;
+  color: var(--label);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: -0.016em;
+  text-wrap: pretty;
+}
+
+/* JS sets the topic color inline; size/weight only here. */
+.trail-item .t-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.trail-item a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--accent);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  text-decoration: none;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.trail-item a:active { opacity: 0.55; }
+
+.trail-item .t-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 16px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.trail-remove {
+  margin-left: auto;
+  min-height: var(--tap-min);
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: var(--label-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: color var(--dur) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+.trail-remove:hover { color: var(--danger); }
+.trail-remove:active { opacity: 0.5; }
+
+.empty-trail {
+  padding: 56px 16px;
+  text-align: center;
+  color: var(--label-2);
+  font-size: 15px;
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------------
+   12. Dark mode
+   -------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #1C1C1E;
+    --bg-2: #2C2C2E;
+    --card: #2C2C2E;
+    --fill: rgba(118, 118, 128, 0.20);
+    --fill-strong: rgba(118, 118, 128, 0.32);
+
+    --label: #FFFFFF;
+    --label-2: #98989F;
+    --label-3: #48484A;
+    --label-inverse: #FFFFFF;
+
+    --accent: #0A84FF;
+    --danger: #FF453A;
+    --line: rgba(84, 84, 88, 0.65);
+    --hairline: rgba(255, 255, 255, 0.08);
+    --material: rgba(28, 28, 30, 0.72);
+    --scrim: rgba(0, 0, 0, 0.48);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.45);
+    --shadow-bar: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.55);
+    --shadow-accent: 0 2px 14px rgba(10, 132, 255, 0.35);
+  }
+
+  /* Chips: tinted fill + brightened --chip text instead of a solid wash,
+     so mid-dark topic colors stay legible on #1C1C1E. */
+  .chip[aria-pressed="true"] {
+    background: var(--chip, var(--accent));
+    background: color-mix(in srgb, var(--chip, var(--accent)) 30%, transparent);
+    color: var(--chip, var(--accent));
+    color: color-mix(in srgb, var(--chip, var(--accent)) 55%, #FFFFFF);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chip, var(--accent)) 40%, transparent);
+  }
+
+  .tag {
+    background: color-mix(in srgb, var(--chip, var(--accent)) 20%, transparent);
+    color: color-mix(in srgb, var(--chip, var(--accent)) 52%, #FFFFFF);
+  }
+
+  /* Topic colors arrive inline; lift them for a dark surface. */
+  .trail-item .t-tag { filter: brightness(1.35) saturate(1.05); }
+
+  .meter-dot { box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.24); }
+  .meter.full .meter-dot { box-shadow: 0 0 0 4px rgba(255, 69, 58, 0.26); }
+
+  .trail-remove:hover { color: var(--danger); }
+}
+
+/* --------------------------------------------------------------------------
+   13. Reduced motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

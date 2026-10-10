@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6f1e7" />
+  <title>Rabbit Hole</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">🕳️</span>
+        <div>
+          <h1>Rabbit Hole</h1>
+          <p class="tagline">Follow one thread at a time.</p>
+        </div>
+      </div>
+      <button id="meter" class="meter" title="Cards explored today" aria-label="Cards explored today">
+        <span class="meter-dot" aria-hidden="true"></span>
+        <span id="meter-text">0 / 12</span>
+      </button>
+    </header>
+
+    <nav class="chips" id="chips" aria-label="Pick a topic"></nav>
+
+    <main class="stage">
+      <article class="card" id="card" aria-live="polite">
+        <div class="card-empty">
+          <p>Pick a thread above, or hit <strong>Surprise me</strong> and let curiosity choose.</p>
+        </div>
+      </article>
+    </main>
+
+    <div class="actions">
+      <button id="save-btn" class="action ghost" disabled aria-label="Save to Trail">
+        <span class="ico" aria-hidden="true">☆</span><span class="lbl">Save</span>
+      </button>
+      <button id="next-btn" class="action primary" aria-label="Show another thread">
+        <span class="ico" aria-hidden="true">↻</span><span class="lbl">Another thread</span>
+      </button>
+      <button id="trail-btn" class="action ghost" aria-label="Open your Trail">
+        <span class="ico" aria-hidden="true">🔖</span><span class="lbl">Trail <span id="trail-count" class="badge">0</span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Trail drawer -->
+  <div class="drawer" id="drawer" hidden>
+    <div class="drawer-head">
+      <h2>Your Trail</h2>
+      <button id="drawer-close" class="icon-btn" aria-label="Close Trail">✕</button>
+    </div>
+    <p class="drawer-sub" id="drawer-sub">Things you saved to come back to.</p>
+    <div class="drawer-body" id="drawer-body"></div>
+  </div>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <template id="card-tpl">
+    <div class="card-inner">
+      <div class="card-head">
+        <span class="tag" data-el="tag"></span>
+        <button class="card-save" data-el="card-save" aria-label="Save to Trail">☆</button>
+      </div>
+      <h2 class="card-title" data-el="title"></h2>
+      <p class="card-extract" data-el="extract"></p>
+      <a class="card-link" data-el="wiki-link" target="_blank" rel="noopener">Read on Wikipedia →</a>
+
+      <div class="deeper">
+        <div class="deeper-label">Go deeper</div>
+        <a class="rec" data-el="book" target="_blank" rel="noopener">
+          <span class="rec-kind">📖 Book</span>
+          <span class="rec-body">
+            <span class="rec-title" data-el="book-title"></span>
+            <span class="rec-meta" data-el="book-meta"></span>
+          </span>
+        </a>
+        <a class="rec" data-el="pod" target="_blank" rel="noopener">
+          <span class="rec-kind">🎧 Podcast</span>
+          <span class="rec-body">
+            <span class="rec-title" data-el="pod-title"></span>
+            <span class="rec-meta" data-el="pod-meta"></span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
