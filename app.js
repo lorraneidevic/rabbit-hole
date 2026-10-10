@@ -6,6 +6,7 @@
 
 const DAILY_LIMIT = 12;
 const STORE_KEY = "rabbit-hole.v1";
+const QUEUE_KEY = "rabbit-hole.queue.v1";
 
 const TOPICS = [
   {
@@ -85,6 +86,19 @@ function load() {
 
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
+}
+
+/* ---------------- commute queue state ---------------- */
+let queue = loadQueue();
+
+function loadQueue() {
+  let q = null;
+  try { q = JSON.parse(localStorage.getItem(QUEUE_KEY)); } catch { /* ignore */ }
+  return Array.isArray(q) ? q : [];
+}
+
+function saveQueue() {
+  try { localStorage.setItem(QUEUE_KEY, JSON.stringify(queue)); } catch { /* ignore */ }
 }
 
 /* ---------------- helpers ---------------- */
@@ -373,14 +387,13 @@ function renderTrail() {
 }
 
 /* ---------------- chips ---------------- */
-function renderChips() {
-  const nav = $("chips");
+function buildChips(nav, selectedId, onPick) {
   nav.innerHTML = "";
   const surprise = document.createElement("button");
   surprise.className = "chip surprise";
   surprise.textContent = "✨ Surprise me";
-  surprise.addEventListener("click", () => { selectedTopicId = null; renderChips(); newCard(); });
-  surprise.setAttribute("aria-pressed", String(selectedTopicId === null));
+  surprise.setAttribute("aria-pressed", String(selectedId === null));
+  surprise.addEventListener("click", () => onPick(null));
   nav.appendChild(surprise);
 
   for (const t of TOPICS) {
@@ -388,21 +401,329 @@ function renderChips() {
     chip.className = "chip";
     chip.textContent = t.label;
     chip.style.setProperty("--chip", t.color);
-    chip.addEventListener("click", () => { selectedTopicId = t.id; renderChips(); newCard(); });
-    chip.setAttribute("aria-pressed", String(selectedTopicId === t.id));
+    chip.setAttribute("aria-pressed", String(selectedId === t.id));
+    chip.addEventListener("click", () => onPick(t.id));
     nav.appendChild(chip);
   }
 }
 
+function renderChips() {
+  buildChips($("chips"), selectedTopicId, (id) => {
+    selectedTopicId = id;
+    renderChips();
+    newCard();
+  });
+}
+
+function renderCommuteChips() {
+  buildChips($("commute-chips"), commuteTopicId, (id) => {
+    commuteTopicId = id;
+    renderCommuteChips();
+    findEpisodes();
+  });
+}
+
+/* ---------------- commute queue ---------------- */
+let commuteTopicId = null;
+let commuteBusy = false;
+let commuteStarted = false;
+let commuteTopic = null;
+let commuteResults = [];
+
+const fmtMins = (ms) => (ms ? `${Math.round(ms / 60000)} min` : "");
+const fmtDate = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+};
+
+function episodeRecord(r, topic) {
+  return {
+    id: r.trackId ? `ep-${r.trackId}` : uid(),
+    title: r.trackName || "Episode",
+    show: r.collectionName || "Podcast",
+    feed: r.feedUrl || null,
+    audio: r.episodeUrl || r.previewUrl || null,
+    link: r.trackViewUrl || r.collectionViewUrl || null,
+    artwork: r.artworkUrl160 || r.artworkUrl60 || null,
+    date: r.releaseDate || null,
+    ms: r.trackTimeMillis || 0,
+    color: topic.color,
+    topicLabel: topic.label,
+    addedAt: Date.now(),
+  };
+}
+
+// Keep iTunes' relevance order, but only one episode per show so the queue
+// is a mix of voices rather than eight from the same feed.
+function selectEpisodes(results, topic) {
+  const seen = new Set();
+  const out = [];
+  for (const r of results) {
+    if (!r.episodeUrl || !r.collectionName || !r.trackName) continue;
+    const mins = (r.trackTimeMillis || 0) / 60000;
+    if (mins && (mins < 4 || mins > 240)) continue; // skip stubs and marathons
+    if (seen.has(r.collectionId)) continue;
+    seen.add(r.collectionId);
+    out.push(episodeRecord(r, topic));
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+
+async function findEpisodes() {
+  if (commuteBusy) return;
+  const topics = commuteTopicId ? TOPICS.filter((t) => t.id === commuteTopicId) : TOPICS;
+  const topic = pick(topics.length ? topics : TOPICS);
+  commuteBusy = true;
+  commuteStarted = true;
+  renderCommuteBusy(topic);
+  try {
+    const data = await getJSON(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(topic.podcastQuery)}` +
+      `&media=podcast&entity=podcastEpisode&limit=200&country=US`
+    );
+    const eps = selectEpisodes(data.results || [], topic);
+    if (!eps.length) { renderCommuteEmpty("No episodes for that one. Try another topic."); return; }
+    commuteTopic = topic;
+    commuteResults = eps;
+    renderCommuteList();
+  } catch (err) {
+    renderCommuteEmpty(err.message || "Network error");
+  } finally {
+    commuteBusy = false;
+  }
+}
+
+function renderCommuteBusy(topic) {
+  $("commute-list").innerHTML = `<div class="list-head">${esc(topic.label)}</div>` +
+    Array.from({ length: 4 }, () => `
+      <article class="ep">
+        <span class="ep-thumb ep-thumb-sk" aria-hidden="true"></span>
+        <div class="ep-body">
+          <div class="sk-line w90"></div>
+          <div class="sk-line w40"></div>
+        </div>
+      </article>`).join("");
+}
+
+function renderCommuteEmpty(message) {
+  $("commute-list").innerHTML = `
+    <div class="error-box">
+      <p style="font-size:36px;margin:0">🎧</p>
+      <p>${esc(message)}</p>
+      <button class="action primary" id="find-again-btn">Try again</button>
+    </div>`;
+  $("find-again-btn").addEventListener("click", findEpisodes);
+}
+
+function episodeHTML(rec) {
+  const queued = queue.some((q) => q.id === rec.id);
+  const meta = [rec.show, fmtMins(rec.ms), fmtDate(rec.date)].filter(Boolean).join(" · ");
+  const thumb = rec.artwork
+    ? `<img class="ep-thumb" src="${esc(rec.artwork)}" alt="" width="56" height="56" loading="lazy">`
+    : `<span class="ep-thumb ep-thumb-ph" aria-hidden="true">🎧</span>`;
+  return `
+    <article class="ep" style="--chip:${esc(rec.color)}">
+      ${thumb}
+      <div class="ep-body">
+        <h3 class="ep-title">${esc(rec.title)}</h3>
+        <p class="ep-show">${esc(meta)}</p>
+        <div class="ep-row">
+          ${rec.audio ? `<a class="ep-link" href="${esc(rec.audio)}" target="_blank" rel="noopener">▶ Play</a>` : ""}
+          ${rec.link ? `<a class="ep-link" href="${esc(rec.link)}" target="_blank" rel="noopener">App ↗</a>` : ""}
+          <button class="ep-add${queued ? " on" : ""}" data-add="${esc(rec.id)}" aria-pressed="${queued}">${queued ? "✓ Queued" : "＋ Queue"}</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+function renderCommuteList() {
+  const list = $("commute-list");
+  const n = commuteResults.length;
+  list.innerHTML =
+    `<div class="list-head">${esc(commuteTopic.label)} · ${n} episode${n > 1 ? "s" : ""}</div>` +
+    commuteResults.map(episodeHTML).join("");
+  list.querySelectorAll("[data-add]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const rec = commuteResults.find((r) => r.id === btn.getAttribute("data-add"));
+      if (rec) toggleQueue(rec, btn);
+    });
+  });
+}
+
+function toggleQueue(rec, btn) {
+  const i = queue.findIndex((q) => q.id === rec.id);
+  if (i >= 0) queue.splice(i, 1);
+  else queue.unshift(rec);
+  saveQueue();
+  const isQueued = i < 0;
+  if (btn) {
+    btn.classList.toggle("on", isQueued);
+    btn.setAttribute("aria-pressed", String(isQueued));
+    btn.textContent = isQueued ? "✓ Queued" : "＋ Queue";
+  }
+  updateQueueCount();
+  renderQueue();
+}
+
+function updateQueueCount() {
+  $("queue-count").textContent = String(queue.length);
+}
+
+function renderQueue() {
+  updateQueueCount();
+  const body = $("queue-body");
+  const foot = $("queue-foot");
+  const n = queue.length;
+  $("queue-sub").textContent = n
+    ? `${n} episode${n > 1 ? "s" : ""} ready for the drive.`
+    : "Episodes you queue will land here.";
+
+  if (!n) {
+    body.innerHTML = `<div class="empty-trail">Nothing queued yet.<br>Tap ＋ Queue on an episode to keep it.</div>`;
+    foot.innerHTML = "";
+    return;
+  }
+
+  body.innerHTML = queue.map((rec) => {
+    const thumb = rec.artwork
+      ? `<img class="ep-thumb" src="${esc(rec.artwork)}" alt="" width="48" height="48" loading="lazy">`
+      : `<span class="ep-thumb ep-thumb-ph" aria-hidden="true">🎧</span>`;
+    return `
+      <div class="trail-item">
+        <div class="q-item">
+          ${thumb}
+          <div class="q-body">
+            <h3>${esc(rec.title)}</h3>
+            <p class="q-show">${esc(rec.show)}</p>
+          </div>
+        </div>
+        <div class="t-row">
+          ${rec.audio ? `<a href="${esc(rec.audio)}" target="_blank" rel="noopener">▶ Play</a>` : ""}
+          ${rec.link ? `<a href="${esc(rec.link)}" target="_blank" rel="noopener">App</a>` : ""}
+          <button class="trail-remove" data-qremove="${esc(rec.id)}">Remove</button>
+        </div>
+      </div>`;
+  }).join("");
+
+  body.querySelectorAll("[data-qremove]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-qremove");
+      const i = queue.findIndex((q) => q.id === id);
+      if (i >= 0) queue.splice(i, 1);
+      saveQueue();
+      renderQueue();
+      const listBtn = $("commute-list").querySelector(`[data-add="${CSS.escape(id)}"]`);
+      if (listBtn) {
+        listBtn.classList.remove("on");
+        listBtn.setAttribute("aria-pressed", "false");
+        listBtn.textContent = "＋ Queue";
+      }
+    });
+  });
+
+  foot.innerHTML = `
+    <button class="action primary" id="export-opml">
+      <span class="ico" aria-hidden="true">⤴</span><span class="lbl">Export for podcast app</span>
+    </button>`;
+  $("export-opml").addEventListener("click", exportOPML);
+}
+
+// OPML carries shows (feeds), which is what podcast apps can import. One
+// outline per distinct show in the queue.
+function buildOPML() {
+  const seen = new Set();
+  const shows = [];
+  for (const rec of queue) {
+    if (!rec.feed || seen.has(rec.feed)) continue;
+    seen.add(rec.feed);
+    shows.push(rec);
+  }
+  if (!shows.length) return null;
+  const outlines = shows.map((r) =>
+    `    <outline type="rss" text="${esc(r.show)}" title="${esc(r.show)}" ` +
+    `xmlUrl="${esc(r.feed)}" htmlUrl="${esc(r.link || "")}"/>`
+  ).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Rabbit Hole — Commute Queue</title>
+    <dateCreated>${new Date().toUTCString()}</dateCreated>
+  </head>
+  <body>
+${outlines}
+  </body>
+</opml>
+`;
+}
+
+async function exportOPML() {
+  const opml = buildOPML();
+  if (!opml) {
+    window.alert("Those episodes didn't come with feed links. Queue a few more and try again.");
+    return;
+  }
+  const blob = new Blob([opml], { type: "text/x-opml" });
+  const filename = "rabbit-hole-commute.opml";
+  try {
+    const file = new File([blob], filename, { type: "text/x-opml" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "Rabbit Hole — Commute Queue" });
+      return;
+    }
+  } catch { /* fall through to a download */ }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 /* ---------------- drawer ---------------- */
-function openDrawer() { $("drawer").hidden = false; $("scrim").hidden = false; renderTrail(); }
-function closeDrawer() { $("drawer").hidden = true; $("scrim").hidden = true; }
+function openDrawer() {
+  $("queue-drawer").hidden = true;
+  $("drawer").hidden = false;
+  $("scrim").hidden = false;
+  renderTrail();
+}
+function openQueueDrawer() {
+  $("drawer").hidden = true;
+  $("queue-drawer").hidden = false;
+  $("scrim").hidden = false;
+  renderQueue();
+}
+function closeDrawer() {
+  $("drawer").hidden = true;
+  $("queue-drawer").hidden = true;
+  $("scrim").hidden = true;
+}
+
+/* ---------------- mode ---------------- */
+function setMode(next) {
+  const exploring = next === "explore";
+  $("view-explore").hidden = !exploring;
+  $("view-commute").hidden = exploring;
+  $("explore-actions").hidden = !exploring;
+  $("commute-actions").hidden = exploring;
+  $("meter").hidden = !exploring;
+  $("mode-explore").setAttribute("aria-selected", String(exploring));
+  $("mode-commute").setAttribute("aria-selected", String(!exploring));
+  if (!exploring && !commuteStarted) findEpisodes();
+}
 
 /* ---------------- init ---------------- */
 function init() {
   renderChips();
+  renderCommuteChips();
   updateMeter();
   updateTrailCount();
+  updateQueueCount();
 
   $("next-btn").addEventListener("click", newCard);
   $("save-btn").addEventListener("click", () => { if (currentCard) toggleSave(currentCard); });
@@ -410,10 +731,17 @@ function init() {
   $("drawer-close").addEventListener("click", closeDrawer);
   $("scrim").addEventListener("click", closeDrawer);
 
+  $("mode-explore").addEventListener("click", () => setMode("explore"));
+  $("mode-commute").addEventListener("click", () => setMode("commute"));
+  $("find-btn").addEventListener("click", findEpisodes);
+  $("queue-btn").addEventListener("click", openQueueDrawer);
+  $("queue-close").addEventListener("click", closeDrawer);
+
   document.addEventListener("keydown", (e) => {
     if (e.target.matches("input, textarea")) return;
-    if (e.key === "n" || e.key === " ") { e.preventDefault(); newCard(); }
     if (e.key === "Escape") closeDrawer();
+    if ($("view-explore").hidden) return; // shortcuts are for the feed
+    if (e.key === "n" || e.key === " ") { e.preventDefault(); newCard(); }
   });
 
   newCard({ count: false });

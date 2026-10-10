@@ -1,0 +1,40 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // ─── Safety policy for this repository ──────────────────────────────────────
+  // Pushing is allowed. Destructive, irreversible and account-level operations
+  // are hard-blocked with `deny` so an agent can never quietly rewrite history,
+  // re-point the remote, or touch account settings.
+  //
+  // The three shared subagents this repo ships (designer, reviewer, scout) are
+  // defined in .opencode/agents/ — small Markdown files that carry a role and
+  // permissions, not a model.
+  "permissions": [
+    { "action": "shell", "resource": "gh api *",            "effect": "deny" },
+    { "action": "shell", "resource": "gh auth *",           "effect": "deny" },
+    { "action": "shell", "resource": "gh repo create *",    "effect": "deny" },
+    { "action": "shell", "resource": "gh repo delete *",    "effect": "deny" },
+    { "action": "shell", "resource": "gh repo edit *",      "effect": "deny" },
+    { "action": "shell", "resource": "gh ssh-key *",        "effect": "deny" },
+    { "action": "shell", "resource": "gh gpg-key *",        "effect": "deny" },
+    { "action": "shell", "resource": "gh secret *",         "effect": "deny" },
+    { "action": "shell", "resource": "gh variable *",       "effect": "deny" },
+    { "action": "shell", "resource": "gh release delete *", "effect": "deny" },
+    { "action": "shell", "resource": "gh pr merge *",       "effect": "deny" },
+
+    { "action": "shell", "resource": "git remote add *",       "effect": "deny" },
+    { "action": "shell", "resource": "git * remote add *",     "effect": "deny" },
+    { "action": "shell", "resource": "git remote remove *",    "effect": "deny" },
+    { "action": "shell", "resource": "git * remote remove *",  "effect": "deny" },
+    { "action": "shell", "resource": "git remote set-url *",   "effect": "deny" },
+    { "action": "shell", "resource": "git * remote set-url *", "effect": "deny" },
+    { "action": "shell", "resource": "git push --force*",      "effect": "deny" },
+    { "action": "shell", "resource": "git * push --force*",    "effect": "deny" },
+    { "action": "shell", "resource": "git push -f*",           "effect": "deny" },
+    { "action": "shell", "resource": "git * push -f*",         "effect": "deny" },
+    { "action": "shell", "resource": "git push * --delete*",   "effect": "deny" },
+    { "action": "shell", "resource": "git * push * --delete*", "effect": "deny" },
+    { "action": "shell", "resource": "git push --mirror*",     "effect": "deny" },
+    { "action": "shell", "resource": "git * push --mirror*",   "effect": "deny" }
+  ]
+}
